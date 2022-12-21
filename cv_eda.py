@@ -14,6 +14,7 @@ def intro():
 def dimensions(imagepath=None, extensions=None):
     extensionsList=extensions.split(',')
     BasicImageEDA.explore(data_dir=imagepath, extensions=extensionsList, threads=0, dimension_plot=True, hw_division_factor=1.0)    
+    logger.info("Completed")
 
 intro.add_command(dimensions)    
 
