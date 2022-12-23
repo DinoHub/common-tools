@@ -4,6 +4,7 @@ import glob
 import os
 import cv2
 import imutils
+from PIL import Image, ImageOps
 
 # -*- coding: utf-8 -*-
 """Example Google style docstrings.
@@ -65,6 +66,27 @@ def resizewithaspectratio(srcimagepath=None, extensions=None, width=None, height
         logger.debug("Writing to "+dstimagepath+"/"+filename.split("/")[-1])
         cv2.imwrite(dstimagepath+"/"+str(filename).split("/")[-1], imresized)
 
+@click.command()
+@click.option('--srcimagepath', required=True, help='Absolute path to source folder of raw images')
+@click.option('--dstimagepath', required=True, help='Absolute path to destination folder of resized images')
+@click.option('--width', required=True, help='Resize to width in pixels', type=int)
+@click.option('--height', required=True, help='Resize to height in pixels', type=int)
+@click.option('--extensions', default="jpg,jpeg,png", help='List of file extensions to read. Default: jpg,jpeg,png')
+def resizeAspectratioBorder(srcimagepath=None, extensions=None, width=None, height=None, dstimagepath=None):
+    logger.debug("srcimagepath: " +srcimagepath )
+    srcpath=srcimagepath+"/**"
+    logger.debug("srcpath: " +srcpath)
+    srcImagefiles=[]
+    for filetype in extensions.split(","):
+        srcImagefiles=srcImagefiles+glob.glob(srcpath+'/*.'+filetype)
+    
+    for filename in srcImagefiles:
+        logger.debug("Reading filename:" + filename)        
+        im = Image.open(filename)
+        im = ImageOps.pad(im, (width, height), color='grey')
+        logger.debug("Writing to "+dstimagepath+"/"+filename.split("/")[-1])
+        im.save(dstimagepath+"/"+str(filename).split("/")[-1])        
+
 
 @click.command()
 @click.option('--srcimagepath', required=True, help='Absolute path to source folder of raw images')
@@ -101,13 +123,14 @@ def addTextOverlay(srcimagepath=None, dstimagepath=None, extensions=None, textty
         width=im.shape[0]
         height=im.shape[1]
         logger.debug("Image size is " + str(width) + ":" + str(height))
-        im = cv2.putText(im, text, (10,width-10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3, cv2.LINE_AA)
-        logger.debug("Writing to "+dstimagepath+"/"+text+"."+filename.split(".")[-1])
-        cv2.imwrite(dstimagepath+"/"+text+"."+filename.split(".")[-1], im)
-        
+        im = cv2.putText(im, text, (10,width-10), cv2.FONT_HERSHEY_SIMPLEX, 4, (255, 0, 0), 3, cv2.LINE_AA)
+        logger.debug("Writing to "+dstimagepath+"/"+text.zfill(5)+"."+filename.split(".")[-1])
+        cv2.imwrite(dstimagepath+"/"+text.zfill(5)+"."+filename.split(".")[-1], im)
+        # break;
 
 intro.add_command(resizewithaspectratio)    
 intro.add_command(addTextOverlay)   
+intro.add_command(resizeAspectratioBorder)
 
 if __name__=='__main__':
     intro()
